@@ -4,28 +4,40 @@ import android.app.ProgressDialog
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
-import android.content.Context
-import android.os.AsyncTask
 import android.util.Log
-import banana.duo.duoKotlin.MouseActivity
+import androidx.compose.ui.platform.textInputServiceFactory
+import banana.duo.Common.Message
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.io.IOException
 import java.util.*
 
-class ClientBluetooth {
+class ClientBluetooth : Client() {
     companion object {
         var m_myUUID: UUID = UUID.fromString("31444335-3731-324B-3531-B0227AE1D02F")
         var m_bluetoothSocket: BluetoothSocket? = null
-        lateinit var m_progress: ProgressDialog
         lateinit var m_bluetoothAdapter: BluetoothAdapter
         var m_isConnected: Boolean = false
         lateinit var m_address: String
+
+        var instance: ClientBluetooth? = null
+
+        fun createInstance() {
+            instance = ClientBluetooth()
+        }
+
+        fun hasInstance(): Boolean {
+            return instance != null
+        }
     }
 
-    private fun sendCommand(input: String) {
+    override fun sendMessage(message: Message) {
+        val out = message.toString() + "\n"
         if (m_bluetoothSocket != null) {
-            try{
-                m_bluetoothSocket!!.outputStream.write(input.toByteArray())
-            } catch(e: IOException) {
+            try {
+                m_bluetoothSocket!!.outputStream.write(out.toByteArray())
+            } catch (e: IOException) {
                 e.printStackTrace()
             }
         }
@@ -43,47 +55,36 @@ class ClientBluetooth {
         }
     }
 
-    private class ConnectToDevice(c: Context) : AsyncTask<Void, Void, String>() {
-        private var connectSuccess: Boolean = true
-        private val context: Context
-
-        init {
-            this.context = c
-        }
-
-        override fun onPreExecute() {
-            super.onPreExecute()
-            m_progress = ProgressDialog.show(context, "Connecting...", "please wait")
-        }
-
-        override fun doInBackground(vararg p0: Void?): String? {
-            try {
-                if (m_bluetoothSocket == null || !m_isConnected) {
-                    m_bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-                    val device: BluetoothDevice = m_bluetoothAdapter.getRemoteDevice(
-                        m_address
-                    )
-                    m_bluetoothSocket = device.createInsecureRfcommSocketToServiceRecord(
-                        m_myUUID
-                    )
-                    BluetoothAdapter.getDefaultAdapter().cancelDiscovery()
-                    m_bluetoothSocket!!.connect()
+    override fun connect(): Boolean {
+        var connectSuccess: Boolean = true
+        runBlocking {
+            launch(Dispatchers.IO) {
+                try {
+                    if (m_bluetoothSocket == null || !m_isConnected) {
+                        m_bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+                        val device: BluetoothDevice = m_bluetoothAdapter.getRemoteDevice(
+                            m_address
+                        )
+                        m_bluetoothSocket = device.createInsecureRfcommSocketToServiceRecord(
+                            m_myUUID
+                        )
+                        BluetoothAdapter.getDefaultAdapter().cancelDiscovery()
+                        m_bluetoothSocket!!.connect()
+                    }
+                } catch (e: IOException)
+                {
+                    connectSuccess = false
+                    e.printStackTrace()
                 }
-            } catch (e: IOException) {
-                connectSuccess = false
-                e.printStackTrace()
-            }
-            return null
-        }
 
-        override fun onPostExecute(result: String?) {
-            super.onPostExecute(result)
-            if (!connectSuccess) {
-                Log.i("data", "couldn't connect")
-            } else {
-                m_isConnected = true
+                if (!connectSuccess) {
+                    Log.i("data", "couldn't connect")
+                } else {
+                    m_isConnected = true
+                }
             }
-            m_progress.dismiss()
         }
+        return connectSuccess
     }
+
 }

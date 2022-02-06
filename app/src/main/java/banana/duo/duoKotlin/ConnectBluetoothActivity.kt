@@ -21,8 +21,11 @@ import androidx.compose.ui.unit.dp
 import banana.duo.duoKotlin.ui.theme.DuoClientKotlinTheme
 import android.util.Log
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
 import androidx.compose.ui.focus.focusModifier
+import banana.duo.duoKotlin.Client.ClientBluetooth
+import banana.duo.duoKotlin.Client.currentClient
 import java.io.IOException
 import java.util.*
 import kotlin.collections.ArrayList
@@ -39,17 +42,18 @@ class ConnectBluetoothActivity : ComponentActivity() {
         val EXTRA_ADDRESS: String = "Device_address"
     }
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         m_bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         if(m_bluetoothAdapter == null) {
-            Toast.makeText(this, "this device doesn't support bluetooth", Toast.LENGTH_LONG)
+            Toast.makeText(this, "this device doesn't support bluetooth", Toast.LENGTH_LONG).show()
             return
         }
         if(!m_bluetoothAdapter!!.isEnabled) {
             val enableBluetoothIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            startActivityForResult(enableBluetoothIntent, REQUEST_ENABLE_BLUETOOTH)
+            enableBluetoothLauncher.launch(enableBluetoothIntent)
         }
 
         setContent {
@@ -74,8 +78,15 @@ class ConnectBluetoothActivity : ComponentActivity() {
     }
 
     private fun connectDevice(address: String) {
-        val intent = Intent(this, MouseActivity::class.java)
-        intent.putExtra(EXTRA_ADDRESS, address)
+        val intent = Intent(this, ChoseDeviceActivity::class.java)
+        ClientBluetooth.m_address = address
+        ClientBluetooth.createInstance()
+        val connected = ClientBluetooth.instance?.connect()
+        if (!connected!!) {
+            Toast.makeText(this, "Не удалось подключиться", Toast.LENGTH_LONG).show()
+            return
+        }
+        currentClient = ClientBluetooth.instance
         startActivity(intent)
     }
 
@@ -89,25 +100,27 @@ class ConnectBluetoothActivity : ComponentActivity() {
                 Log.i("device", ""+device)
             }
         } else {
-            Toast.makeText(this, "no paired bluetooth devices found", Toast.LENGTH_LONG)
+            Toast.makeText(this, "no paired bluetooth devices found", Toast.LENGTH_LONG).show()
         }
         return list
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_ENABLE_BLUETOOTH) {
-            if (resultCode == Activity.RESULT_OK) {
+
+
+    var enableBluetoothLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == REQUEST_ENABLE_BLUETOOTH) {
+            if (result.resultCode == Activity.RESULT_OK) {
                 if (m_bluetoothAdapter!!.isEnabled) {
-                    Toast.makeText(this, "Bluetooth has been enabled", Toast.LENGTH_LONG)
+                    Toast.makeText(this, "Bluetooth has been enabled", Toast.LENGTH_LONG).show()
                 } else {
-                    Toast.makeText(this, "Bluetooth has been disabled", Toast.LENGTH_LONG)
+                    Toast.makeText(this, "Bluetooth has been disabled", Toast.LENGTH_LONG).show()
                 }
-            } else if (resultCode == Activity.RESULT_CANCELED) {
-                Toast.makeText(this, "Bluetooth enabling has been canceled", Toast.LENGTH_LONG)
+            } else if (result.resultCode == Activity.RESULT_CANCELED) {
+                Toast.makeText(this, "Bluetooth enabling has been canceled", Toast.LENGTH_LONG).show()
             }
         }
     }
+
 
 }
 

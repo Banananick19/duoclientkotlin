@@ -1,0 +1,5 @@
+package banana.duo.duoKotlin
+
+val EXTRA_CLIENT_TYPE = "CLIENT_TYPE"
+val BLUETOOTH_CLIENT_TYPE = "BLUETOOTH"
+val WIFI_CLIENT_TYPE = "WIFI"
