@@ -16,6 +16,10 @@ import banana.duo.duoKotlin.ui.theme.DuoClientKotlinTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import banana.duo.duoKotlin.Client.Client
+import banana.duo.duoKotlin.Client.ClientWiFi
+import banana.duo.duoKotlin.Client.currentClient
+import java.lang.Exception
 
 
 class ConnectWiFiActivity : ComponentActivity() {
@@ -51,10 +55,11 @@ class ConnectWiFiActivity : ComponentActivity() {
     }
 
     fun onSubmit(ip: String, port: String) {
-        //TODO: коннект
+        ClientWiFi.createInstance(ip, Integer.parseInt(port))
+        currentClient = ClientWiFi.instance
+        ClientWiFi.instance?.connect()
+
         val intent = Intent(this, ChoseDeviceActivity::class.java)
-        intent.putExtra("ip", ip)
-        intent.putExtra("port", port)
         startActivity(intent)
     }
 }

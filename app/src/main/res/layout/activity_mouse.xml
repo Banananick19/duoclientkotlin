@@ -6,6 +6,56 @@
     android:layout_height="match_parent"
     tools:context=".MouseActivity">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:divider="@drawable/empty_tall_divider"
+        android:showDividers="middle"
+        app:layout_constraintBottom_toTopOf="@+id/mouse_joystick"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        >
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/leftButton"
+            android:text='L'
+            android:textSize='108sp'
+            />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text='^'
+            android:id="@+id/upButton"
+            android:textSize='58sp'
+            />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text='V'
+            android:id="@+id/downButton"
+            android:textSize='58sp'
+            />
+    </LinearLayout>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text='R'
+            android:id="@+id/rightButton"
+            android:textSize='108sp'
+            />
+    </LinearLayout>
+
     <io.github.controlwear.virtual.joystick.android.JoystickView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
